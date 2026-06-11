@@ -1,4 +1,4 @@
-from django.db import router, connection
+from django.db import connection, router
 
 from .base import Operation, OperationCategory
 
