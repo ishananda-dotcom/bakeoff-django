@@ -70,9 +70,7 @@ class Command(BaseCommand):
 
         # Show begin/end around output for atomic migrations, if the database
         # supports transactional DDL.
-        self.output_transaction = (
-            migration.atomic and connection.features.can_rollback_ddl
-        )
+        self.output_transaction = migration.atomic and connection.features.can_rollback_ddl
 
         # Make a plan that represents just the requested migrations and show
         # SQL for it
