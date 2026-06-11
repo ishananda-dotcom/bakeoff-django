@@ -80,6 +80,16 @@ Here are some useful attributes of ``UploadedFile``:
     recognized as ending a line: the Unix end-of-line convention ``'\n'``, the
     Windows convention ``'\r\n'``, and the old Macintosh convention ``'\r'``.
 
+
+**Important Note on File Permissions**
+
+When handling file uploads, it's vital to be aware of the file permissions
+that are applied to the uploaded files. By default, Django's
+``FileSystemStorage`` now sets file permissions to ``644``. This ensures
+the files are readable by the owner and group, but not writable by the group or others.
+However, make sure to review and adjust file permissions according to your
+system's requirements and security policies.
+
 Subclasses of ``UploadedFile`` include:
 
 .. class:: TemporaryUploadedFile
