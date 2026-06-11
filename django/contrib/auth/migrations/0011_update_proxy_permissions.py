@@ -44,15 +44,12 @@ def update_proxy_model_permissions(apps, schema_editor, reverse=False):
         new_content_type = concrete_content_type if reverse else proxy_content_type
         try:
             with transaction.atomic(using=alias):
-                # Check for existing permissions to determine potential conflicts
-                existing_permissions = Permission.objects.using(alias).filter(
+                existing = Permission.objects.using(alias).filter(
                     permissions_query,
                     content_type=new_content_type,
                 )
-                if existing_permissions.exists():
-                    print(style.WARNING("
-                    Skipping update as permissions for new content type already exist "))
-                    continue # Skip updating these conflicting entries
+                if existing.exists():
+                    continue
 
                 Permission.objects.using(alias).filter(
                     permissions_query,
