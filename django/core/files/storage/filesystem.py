@@ -25,7 +25,7 @@ class FileSystemStorage(Storage, StorageSettingsMixin):
         self,
         location=None,
         base_url=None,
-        file_permissions_mode=None,
+        file_permissions_mode=0o644,
         directory_permissions_mode=None,
         allow_overwrite=False,
     ):
