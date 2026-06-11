@@ -49,6 +49,9 @@ def update_proxy_model_permissions(apps, schema_editor, reverse=False):
                     content_type=old_content_type,
                 ).update(content_type=new_content_type)
         except IntegrityError:
+            # If an integrity error is raised, continue with the existing entries
+            pass
+        except IntegrityError:
             old = "{}_{}".format(old_content_type.app_label, old_content_type.model)
             new = "{}_{}".format(new_content_type.app_label, new_content_type.model)
             sys.stdout.write(
