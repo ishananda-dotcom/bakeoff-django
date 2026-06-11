@@ -539,5 +539,3 @@ class ImageField(FileField):
                 **kwargs,
             }
         )
-
-
