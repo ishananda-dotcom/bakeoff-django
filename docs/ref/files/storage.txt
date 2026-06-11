@@ -71,7 +71,7 @@ The ``FileSystemStorage`` class
     .. attribute:: file_permissions_mode
 
         The file system permissions that the file will receive when it is
-        saved. Defaults to :setting:`FILE_UPLOAD_PERMISSIONS`.
+        saved. Defaults to :setting:`FILE_UPLOAD_PERMISSIONS` (e.g., 0o644).
 
     .. attribute:: directory_permissions_mode
 
@@ -89,6 +89,9 @@ The ``FileSystemStorage`` class
         :func:`os.path.getctime`. On some systems (like Unix), this is the
         time of the last metadata change, and on others (like Windows), it's
         the creation time of the file.
+
+    .. warning::
+        Ensure the file permissions for uploads are set correctly to avoid unauthorized access.
 
 The ``InMemoryStorage`` class
 =============================
