@@ -29,7 +29,7 @@ class HttpResponseBaseTests(SimpleTestCase):
         with self.assertRaisesMessage(
             OSError, "This HttpResponseBase instance is not writable"
         ):
-            r.writelines(["asdf\n", "qwer\n"])
+            r.writelines(["asdf\\n", "qwer\\n"])
 
     def test_tell(self):
         r = HttpResponseBase()
@@ -106,11 +106,11 @@ class HttpResponseTests(SimpleTestCase):
     def test_invalid_reason_phrase(self):
         msg = "reason_phrase can't contain control characters."
         invalid_reasons = [
-            "OK\r\nX-Injected-header: yes",
-            "OK\x00",
-            "OK\x1f",
-            "OK\x7f",
-            "OK\x9f",
+            "OK\\r\\nX-Injected-header: yes",
+            "OK\\x00",
+            "OK\\x1f",
+            "OK\\x7f",
+            "OK\\x9f",
         ]
         for reason in invalid_reasons:
             with self.subTest(reason=reason):
@@ -192,3 +192,28 @@ class HttpResponseTests(SimpleTestCase):
         cache.set("my-response-key", response)
         response = cache.get("my-response-key")
         self.assertEqual(response.content, b"0123456789")
+
+    def test_memoryview_content(self):
+        """HttpResponse should properly handle memoryview objects."""
+        # Test basic memoryview
+        response = HttpResponse(memoryview(b"My Content"))
+        self.assertEqual(response.content, b"My Content")
+
+        # Test empty memoryview
+        response = HttpResponse(memoryview(b""))
+        self.assertEqual(response.content, b"")
+
+        # Test large memoryview
+        large_content = b"x" * 10000
+        response = HttpResponse(memoryview(large_content))
+        self.assertEqual(response.content, large_content)
+
+        # Test memoryview via content property
+        response = HttpResponse()
+        response.content = memoryview(b"Set via property")
+        self.assertEqual(response.content, b"Set via property")
+
+        # Test memoryview from bytes-like object
+        data = bytearray(b"From bytearray")
+        response = HttpResponse(memoryview(data))
+        self.assertEqual(response.content, b"From bytearray")
