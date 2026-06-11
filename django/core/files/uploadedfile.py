@@ -79,8 +79,9 @@ class TemporaryUploadedFile(UploadedFile):
     def __init__(self, name, content_type, size, charset, content_type_extra=None):
         _, ext = os.path.splitext(name)
         file = tempfile.NamedTemporaryFile(
-            suffix=".upload" + ext, dir=settings.FILE_UPLOAD_TEMP_DIR
+            suffix=".upload" + ext, dir=settings.FILE_UPLOAD_TEMP_DIR, delete=False
         )
+        os.chmod(file.name, 0o644)
         super().__init__(file, name, content_type, size, charset, content_type_extra)
 
     def temporary_file_path(self):
