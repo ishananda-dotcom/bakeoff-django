@@ -539,3 +539,67 @@ class ImageField(FileField):
                 **kwargs,
             }
         )
+
+
+class FilePathField(FileField):
+    description = _("File path")
+
+    def __init__(self, verbose_name=None, name=None, path=None, match=None, recursive=False, allow_files=True, allow_folders=False, **kwargs):
+        if callable(path):
+            self.path = path
+        else:
+            self.path = os.path.abspath(path)
+        self.match = match
+        self.recursive = recursive
+        self.allow_files = allow_files
+        self.allow_folders = allow_folders
+        super().__init__(verbose_name, name, **kwargs)
+
+    def deconstruct(self):
+        name, path, args, kwargs = super().deconstruct()
+        if self.path is not None:
+            kwargs['path'] = self.path
+        return name, path, args, kwargs
+
+    def get_internal_type(self):
+        return "FilePathField"
+
+    def get_prep_value(self, value):
+        # Convert file paths to string
+        value = super().get_prep_value(value)
+        if value is None:
+            return None
+        return str(value)
+
+    def _check_path(self):
+        if self.path is None:
+            return [
+                checks.Error(
+                    "FilePathFields must have a 'path' attribute.",
+                    obj=self,
+                    id='fields.E180',
+                )
+            ]
+        return []
+
+    def check(self, **kwargs):
+        return [
+            *super().check(**kwargs),
+            *self._check_path(),
+        ]
+
+    def contribute_to_class(self, cls, name, **kwargs):
+        # This might be needed to set up the descriptor or other class-related functionality
+        super().contribute_to_class(cls, name, **kwargs)
+
+    def get_directory_name(self):
+        if callable(self.path):
+            return self.path()
+        return self.path
+
+    def formfield(self, **kwargs):
+        defaults = {'form_class': forms.FilePathField, 'path': self.get_directory_name(),
+                    'match': self.match, 'recursive': self.recursive,
+                    'allow_files': self.allow_files, 'allow_folders': self.allow_folders}
+        defaults.update(kwargs)
+        return super().formfield(**defaults)
