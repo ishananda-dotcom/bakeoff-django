@@ -1,4 +1,4 @@
-from django.db import router
+from django.db import router, connection
 
 from .base import Operation, OperationCategory
 
@@ -109,7 +109,13 @@ class RunSQL(Operation):
         if router.allow_migrate(
             schema_editor.connection.alias, app_label, **self.hints
         ):
-            self._run_sql(schema_editor, self.sql)
+            # Check for rollback ability
+            if connection.features.can_rollback_ddl:
+                schema_editor.connection.ops.start_transaction_sql()
+                self._run_sql(schema_editor, self.sql)
+                schema_editor.connection.ops.end_transaction_sql()
+            else:
+                self._run_sql(schema_editor, self.sql)
 
     def database_backwards(self, app_label, schema_editor, from_state, to_state):
         if self.reverse_sql is None:
