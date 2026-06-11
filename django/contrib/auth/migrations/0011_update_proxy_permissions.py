@@ -55,7 +55,9 @@ def update_proxy_model_permissions(apps, schema_editor, reverse=False):
                 old = "{}_{}".format(old_content_type.app_label, old_content_type.model)
                 new = "{}_{}".format(new_content_type.app_label, new_content_type.model)
                 sys.stdout.write(
-                    style.WARNING(WARNING.format(old=old, new=new, query=permissions_query))
+                    style.WARNING(
+                        WARNING.format(old=old, new=new, query=permissions_query)
+                    )
                 )
 
 
