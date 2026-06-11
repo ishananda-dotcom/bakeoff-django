@@ -5,7 +5,6 @@ HTML Widget classes
 import copy
 import datetime
 import warnings
-import collections
 from collections import defaultdict
 from graphlib import CycleError, TopologicalSorter
 from itertools import chain
@@ -245,26 +244,21 @@ class Media:
         global or in CSS you might want to override a style.
         """
         ts = TopologicalSorter()
-        added = set()
         for head, *tail in filter(None, lists):
             ts.add(head)  # Ensure that the first items are included.
-            added.add(head)
             for item in tail:
                 if head != item:  # Avoid circular dependency to self.
                     ts.add(item, head)
                 head = item
-                added.add(item)
         try:
             return list(ts.static_order())
         except CycleError:
-            duplicate_items = [item for item, count in collections.Counter(added).items() if count > 1]
-            if duplicate_items:
-                warnings.warn(
-                    "Detected duplicate Media files in an opposite order: {}".format(
-                        ", ".join(repr(item) for item in duplicate_items)
-                    ),
-                    MediaOrderConflictWarning,
-                )
+            warnings.warn(
+                "Detected duplicate Media files in an opposite order: {}".format(
+                    ", ".join(repr(list_) for list_ in lists)
+                ),
+                MediaOrderConflictWarning,
+            )
             return list(dict.fromkeys(chain.from_iterable(filter(None, lists))))
 
     def __add__(self, other):
