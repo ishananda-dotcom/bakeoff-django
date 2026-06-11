@@ -4,6 +4,9 @@ Settings and configuration for Django.
 Read values from the module specified by the DJANGO_SETTINGS_MODULE environment
 variable, and then from django.conf.global_settings; see the global_settings.py
 for a list of all possible variables.
+
+Note: Ensure FILE_UPLOAD_PERMISSIONS is consistent across different upload
+handlers to avoid potential permission inconsistencies on different OS.
 """
 
 import importlib
