@@ -31,7 +31,7 @@ class FileSystemStorage(Storage, StorageSettingsMixin):
     ):
         self._location = location
         self._base_url = base_url
-        self._file_permissions_mode = file_permissions_mode
+        self._file_permissions_mode = file_permissions_mode or 0o644
         self._directory_permissions_mode = directory_permissions_mode
         self._allow_overwrite = allow_overwrite
         setting_changed.connect(self._clear_cached_properties)
