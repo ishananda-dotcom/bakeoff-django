@@ -1,13 +1,6 @@
-import collections
-import json
 import re
-import warnings
-from functools import partial
-from itertools import chain
-
-from django.core.exceptions import EmptyResultSet, FieldError, FullResultSet
-from django.db import DatabaseError, NotSupportedError
-from django.db.models.constants import LOOKUP_SEP
+from functools importfrom itertools import
+from django.core.exceptions importfrom django.db.models.constants import LOOKUP_SEP
 from django.db.models.expressions import ColPairs, F, OrderBy, RawSQL, Ref, Value
 from django.db.models.fields import AutoField, composite
 from django.db.models.functions import Cast, Random
