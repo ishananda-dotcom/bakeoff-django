@@ -760,7 +760,9 @@ class CallableChoiceIterator:
 class ChoiceField(Field):
     widget = Select
     default_error_messages = {
-        'invalid_choice': _('Select a valid choice. %(value)s is not one of the available choices.'),
+        'invalid_choice': _(
+            'Select a valid choice. %(value)s is not one of the available choices.'
+        ),
     }
 
     def __init__(self, *, choices=(), **kwargs):
@@ -850,7 +852,9 @@ class MultipleChoiceField(ChoiceField):
     hidden_widget = MultipleHiddenInput
     widget = SelectMultiple
     default_error_messages = {
-        'invalid_choice': _('Select a valid choice. %(value)s is not one of the available choices.'),
+        'invalid_choice': _(
+            'Select a valid choice. %(value)s is not one of the available choices.'
+        ),
         'invalid_list': _('Enter a list of values.'),
     }
 
@@ -858,7 +862,9 @@ class MultipleChoiceField(ChoiceField):
         if not value:
             return []
         elif not isinstance(value, (list, tuple)):
-            raise ValidationError(self.error_messages['invalid_list'], code='invalid_list')
+            raise ValidationError(
+                self.error_messages['invalid_list'], code='invalid_list'
+            )
         return [str(val) for val in value]
 
     def validate(self, value):
