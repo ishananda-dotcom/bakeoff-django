@@ -244,7 +244,8 @@ class Field(RegisterLookupMixin):
             return []
 
         def is_value(value, accept_promise=True):
-            return isinstance(value, (str, Promise) if accept_promise else str) or not is_iterable(value)
+            return isinstance(value, (str,
+                Promise) if accept_promise else str) or not is_iterable(value)
 
         if is_value(self.choices, accept_promise=False):
             return [
@@ -322,7 +323,8 @@ class Field(RegisterLookupMixin):
     def _check_backend_specific_checks(self, **kwargs):
         app_label = self.model._meta.app_label
         for db in connections:
-            if router.allow_migrate(db, app_label, model_name=self.model._meta.model_name):
+            if router.allow_migrate(db, app_label,
+                model_name=self.model._meta.model_name):
                 return connections[db].validation.check_field(self, **kwargs)
         return []
 
@@ -803,11 +805,13 @@ class Field(RegisterLookupMixin):
                 return self.default
             return lambda: self.default
 
-        if not self.empty_strings_allowed or self.null and not connection.features.interprets_empty_strings_as_nulls:
+        if not self.empty_strings_allowed or self.null
+            not connection.features.interprets_empty_strings_as_nulls:
             return return_None
         return str  # return empty string
 
-    def get_choices(self, include_blank=True, blank_choice=BLANK_CHOICE_DASH, limit_choices_to=None, ordering=()):
+    def get_choices(self, include_blank=True, blank_choice=BLANK_CHOICE_DASH,
+        limit_choices_to=None, ordering=()):
         """
         Return choices with a default blank choices included, for use
         as <select> choices for this field.
@@ -815,7 +819,8 @@ class Field(RegisterLookupMixin):
         if self.choices is not None:
             choices = list(self.choices)
             if include_blank:
-                blank_defined = any(choice in ('', None) for choice, _ in self.flatchoices)
+                blank_defined = any(choice in ('', None) for choice,
+                    _ in self.flatchoices)
                 if not blank_defined:
                     choices = blank_choice + choices
             return choices
@@ -1054,7 +1059,8 @@ class CharField(Field):
                     id='fields.E120',
                 )
             ]
-        elif (not isinstance(self.max_length, int) or isinstance(self.max_length, bool) or
+        elif (not isinstance(self.max_length, int) or isinstance(self.max_length,
+            bool) or
                 self.max_length <= 0):
             return [
                 checks.Error(
@@ -1124,7 +1130,8 @@ class DateTimeCheckMixin:
         # auto_now, auto_now_add, and default are mutually exclusive
         # options. The use of more than one of these options together
         # will trigger an Error
-        mutually_exclusive_options = [self.auto_now_add, self.auto_now, self.has_default()]
+        mutually_exclusive_options = [self.auto_now_add, self.auto_now,
+            self.has_default()]
         enabled_options = [option not in (None, False) for option in mutually_exclusive_options].count(True)
         if enabled_options > 1:
             return [
@@ -1648,7 +1655,7 @@ class EmailField(CharField):
 
     def deconstruct(self):
         name, path, args, kwargs = super().deconstruct()
-        # We do not exclude max_length if it matches default as we want to change
+        # We do not exclude max_length if it matches default as we want to chan
         # the default in future.
         return name, path, args, kwargs
 
