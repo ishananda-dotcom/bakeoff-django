@@ -116,10 +116,6 @@ class LogEntry(models.Model):
         return self.action_flag == DELETION
 
     def get_change_message(self):
-        """
-        If self.change_message is a JSON structure, interpret it as a change
-        string, properly translated.
-        """
         if self.change_message and self.change_message[0] == "[":
             try:
                 change_message = json.loads(self.change_message)
@@ -180,13 +176,9 @@ class LogEntry(models.Model):
             return self.change_message
 
     def get_edited_object(self):
-        """Return the edited object represented by this log entry."""
         return self.content_type.get_object_for_this_type(pk=self.object_id)
 
     def get_admin_url(self):
-        """
-        Return the admin URL to edit the object represented by this log entry.
-        """
         if self.content_type and self.object_id:
             url_name = "admin:%s_%s_change" % (
                 self.content_type.app_label,
