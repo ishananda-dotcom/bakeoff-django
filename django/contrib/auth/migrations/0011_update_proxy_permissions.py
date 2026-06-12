@@ -51,5 +51,7 @@ class Migration(migrations.Migration):
         ('contenttypes', '0002_remove_content_type_name'),
     ]
     operations = [
-        migrations.RunPython(update_proxy_model_permissions, revert_proxy_model_permissions),
+        migrations.RunPython(
+            update_proxy_model_permissions, revert_proxy_model_permissions
+        ),
     ]
