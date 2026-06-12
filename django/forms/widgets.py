@@ -75,11 +75,12 @@ class Media:
             return []
         if len(js_lists) == 1:
             return js_lists[0]
-        # For multiple lists, use merge_multiple to handle dependencies correctly
+        # For multiple lists, use merge_multiple to handle dependencies correct
         return self.merge_multiple(js_lists)
 
     def render(self):
-        return mark_safe('\n'.join(chain.from_iterable(getattr(self, 'render_' + name)() for name in MEDIA_TYPES)))
+        return mark_safe('\n'.join(chain.from_iterable(getattr(self,
+            'render_' + name)() for name in MEDIA_TYPES)))
 
     def render_js(self):
         return [
@@ -90,7 +91,7 @@ class Media:
         ]
 
     def render_css(self):
-        # To keep rendering order consistent, we can't just iterate over items().
+        # To keep rendering order consistent, we can't just iterate over items(
         # We need to sort the keys, and iterate over the sorted list.
         media = sorted(self._css)
         return chain.from_iterable([
@@ -143,11 +144,12 @@ class Media:
                 if index > last_insert_index:
                     warnings.warn(
                         'Detected duplicate Media files in an opposite order:\n'
-                        '%s\n%s' % (combined_list[last_insert_index], combined_list[index]),
+                        '%s\n%s' % (combined_list[last_insert_index],
+                            combined_list[index]),
                         MediaOrderConflictWarning,
                     )
                 # path already exists in the list. Update last_insert_index so
-                # that the following elements are inserted in front of this one.
+                # that the following elements are inserted in front of this one
                 last_insert_index = index
         return combined_list
 
@@ -190,19 +192,19 @@ class Media:
         for path in all_files:
             for dep in must_come_before[path]:
                 in_degree[dep] += 1
-        
+
         # Start with files that have no dependencies
         queue = [path for path in all_files if in_degree[path] == 0]
-        
+
         # Sort queue by the earliest position in input lists (stable sort)
         queue.sort(key=lambda x: file_to_order.get(x, float('inf')))
-        
+
         result = []
         while queue:
             # Take the file with the earliest original position
             current = queue.pop(0)
             result.append(current)
-            
+
             # Process dependencies
             for dependent in must_come_before[current]:
                 in_degree[dependent] -= 1
@@ -561,7 +563,8 @@ class DateTimeBaseInput(TextInput):
         self.format = format or None
 
     def format_value(self, value):
-        return formats.localize_input(value, self.format or formats.get_format(self.format_key)[0])
+        return formats.localize_input(value,
+            self.format or formats.get_format(self.format_key)[0])
 
 
 class DateInput(DateTimeBaseInput):
@@ -695,11 +698,13 @@ class ChoiceWidget(Widget):
                     subindex += 1
         return groups
 
-    def create_option(self, name, value, label, selected, index, subindex=None, attrs=None):
+    def create_option(self, name, value, label, selected, index, subindex=None,
+        attrs=None):
         index = str(index) if subindex is None else "%s_%s" % (index, subindex)
         if attrs is None:
             attrs = {}
-        option_attrs = self.build_attrs(self.attrs, attrs) if self.option_inherits_attrs else {}
+        option_attrs = self.build_attrs(self.attrs,
+            attrs) if self.option_inherits_attrs else {}
         if selected:
             option_attrs.update(self.checked_attribute)
         if 'id' in option_attrs:
@@ -718,7 +723,8 @@ class ChoiceWidget(Widget):
 
     def get_context(self, name, value, attrs):
         context = super().get_context(name, value, attrs)
-        context['widget']['optgroups'] = self.optgroups(name, context['widget']['value'], attrs)
+        context['widget']['optgroups'] = self.optgroups(name, context['widget']['value'],
+            attrs)
         return context
 
     def id_for_label(self, id_, index='0'):
@@ -779,7 +785,8 @@ class Select(ChoiceWidget):
             return use_required_attribute
 
         first_choice = next(iter(self.choices), None)
-        return use_required_attribute and first_choice is not None and self._choice_has_empty_value(first_choice)
+        return use_required_attribute and first_choice is not None
+            self._choice_has_empty_value(first_choice)
 
 
 class NullBooleanSelect(Select):
@@ -915,7 +922,8 @@ class MultiWidget(Widget):
                 widget_attrs['id'] = '%s_%s' % (id_, i)
             else:
                 widget_attrs = final_attrs
-            subwidgets.append(widget.get_context(widget_name, widget_value, widget_attrs)['widget'])
+            subwidgets.append(widget.get_context(widget_name, widget_value,
+                widget_attrs)['widget'])
         context['widget']['subwidgets'] = subwidgets
         return context
 
@@ -925,7 +933,8 @@ class MultiWidget(Widget):
         return id_
 
     def value_from_datadict(self, data, files, name):
-        return [widget.value_from_datadict(data, files, name + '_%s' % i) for i, widget in enumerate(self.widgets)]
+        return [widget.value_from_datadict(data, files, name + '_%s' % i) for i,
+            widget in enumerate(self.widgets)]
 
     def value_omitted_from_data(self, data, files, name):
         return all(
@@ -969,7 +978,8 @@ class SplitDateTimeWidget(MultiWidget):
     supports_microseconds = False
     template_name = 'django/forms/widgets/splitdatetime.html'
 
-    def __init__(self, attrs=None, date_format=None, time_format=None, date_attrs=None, time_attrs=None):
+    def __init__(self, attrs=None, date_format=None, time_format=None, date_attrs=None,
+        time_attrs=None):
         widgets = (
             DateInput(
                 attrs=attrs if date_attrs is None else date_attrs,
