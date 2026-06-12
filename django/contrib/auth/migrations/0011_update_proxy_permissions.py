@@ -50,7 +50,7 @@ def update_proxy_model_permissions(apps, schema_editor, reverse=False):
                     permissions_query,
                     content_type=new_content_type,
                 ).delete()
-                # Now update the permissions from old content type to new content type
+                # Update permissions from old content type to new content type
                 Permission.objects.using(alias).filter(
                     permissions_query,
                     content_type=old_content_type,
