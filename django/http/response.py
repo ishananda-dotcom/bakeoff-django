@@ -80,7 +80,7 @@ class HttpResponseBase:
         matched = _charset_from_content_type_re.search(content_type)
         if matched:
             # Extract the charset and strip its double quotes
-            return matched.group('charset').replace('"', '')
+            return matched.group('charset').replace('\"', '')
         return settings.DEFAULT_CHARSET
 
     @charset.setter
@@ -88,7 +88,7 @@ class HttpResponseBase:
         self._charset = value
 
     def serialize_headers(self):
-        """HTTP headers as a bytestring."""
+        \"\"\"HTTP headers as a bytestring.\"\"\"
         def to_bytes(val, encoding):
             return val if isinstance(val, bytes) else val.encode(encoding)
 
@@ -96,26 +96,26 @@ class HttpResponseBase:
             (to_bytes(key, 'ascii') + b': ' + to_bytes(value, 'latin-1'))
             for key, value in self._headers.values()
         ]
-        return b'\r\n'.join(headers)
+        return b'\\r\\n'.join(headers)
 
     __bytes__ = serialize_headers
 
     @property
     def _content_type_for_repr(self):
-        return ', "%s"' % self['Content-Type'] if 'Content-Type' in self else ''
+        return ', \"%s\"' % self['Content-Type'] if 'Content-Type' in self else ''
 
     def _convert_to_charset(self, value, charset, mime_encode=False):
-        """
+        \"\"\"
         Convert headers key/value to ascii/latin-1 native strings.
 
         `charset` must be 'ascii' or 'latin-1'. If `mime_encode` is True and
         `value` can't be represented in the given charset, apply MIME-encoding.
-        """
+        \"\"\"
         if not isinstance(value, (bytes, str)):
             value = str(value)
-        if ((isinstance(value, bytes) and (b'\n' in value or b'\r' in value)) or
-                isinstance(value, str) and ('\n' in value or '\r' in value)):
-            raise BadHeaderError("Header values can't contain newlines (got %r)" % value)
+        if ((isinstance(value, bytes) and (b'\\n' in value or b'\\r' in value)) or
+                isinstance(value, str) and ('\\n' in value or '\\r' in value)):
+            raise BadHeaderError(\"Header values can't contain newlines (got %r)\" % value)
         try:
             if isinstance(value, str):
                 # Ensure string is valid in given charset
@@ -143,7 +143,7 @@ class HttpResponseBase:
         return self._headers[header.lower()][1]
 
     def has_header(self, header):
-        """Case-insensitive check for a header."""
+        \"\"\"Case-insensitive check for a header.\"\"\"
         return header.lower() in self._headers
 
     __contains__ = has_header
@@ -156,7 +156,7 @@ class HttpResponseBase:
 
     def set_cookie(self, key, value='', max_age=None, expires=None, path='/',
                    domain=None, secure=False, httponly=False, samesite=None):
-        """
+        \"\"\"
         Set a cookie.
 
         ``expires`` can be:
@@ -164,7 +164,7 @@ class HttpResponseBase:
         - a naive ``datetime.datetime`` object in UTC,
         - an aware ``datetime.datetime`` object in any time zone.
         If it is a ``datetime.datetime`` object then calculate ``max_age``.
-        """
+        \"\"\"
         self.cookies[key] = value
         if expires is not None:
             if isinstance(expires, datetime.datetime):
@@ -197,11 +197,11 @@ class HttpResponseBase:
             self.cookies[key]['httponly'] = True
         if samesite:
             if samesite.lower() not in ('lax', 'strict'):
-                raise ValueError('samesite must be "lax" or "strict".')
+                raise ValueError('samesite must be \"lax\" or \"strict\".')
             self.cookies[key]['samesite'] = samesite
 
     def setdefault(self, key, value):
-        """Set a header unless it has already been set."""
+        \"\"\"Set a header unless it has already been set.\"\"\"
         if key not in self:
             self[key] = value
 
@@ -221,7 +221,7 @@ class HttpResponseBase:
     # Common methods used by subclasses
 
     def make_bytes(self, value):
-        """Turn a value into a bytestring encoded in the output charset."""
+        \"\"\"Turn a value into a bytestring encoded in the output charset.\"\"\"
         # Per PEP 3333, this response body must be bytes. To avoid returning
         # an instance of a subclass, this function returns `bytes(value)`.
         # This doesn't make a copy when `value` already contains bytes.
@@ -278,11 +278,11 @@ class HttpResponseBase:
 
 
 class HttpResponse(HttpResponseBase):
-    """
+    \"\"\"
     An HTTP response class with a string as content.
 
     This content that can be read, appended to, or replaced.
-    """
+    \"\"\"
 
     streaming = False
 
@@ -299,8 +299,8 @@ class HttpResponse(HttpResponseBase):
         }
 
     def serialize(self):
-        """Full HTTP message, including headers, as a bytestring."""
-        return self.serialize_headers() + b'\r\n\r\n' + self.content
+        \"\"\"Full HTTP message, including headers, as a bytestring.\"\"\"
+        return self.serialize_headers() + b'\\r\\n\\r\\n' + self.content
 
     __bytes__ = serialize
 
@@ -344,13 +344,13 @@ class HttpResponse(HttpResponseBase):
 
 
 class StreamingHttpResponse(HttpResponseBase):
-    """
+    \"\"\"
     A streaming HTTP response class with an iterator as content.
 
     This should only be iterated once, when the response is streamed to the
     client. However, it can be appended to or replaced with a new iterator
     that wraps the original content (or yields entirely new content).
-    """
+    \"\"\"
 
     streaming = True
 
@@ -363,8 +363,8 @@ class StreamingHttpResponse(HttpResponseBase):
     @property
     def content(self):
         raise AttributeError(
-            "This %s instance has no `content` attribute. Use "
-            "`streaming_content` instead." % self.__class__.__name__
+            \"This %s instance has no `content` attribute. Use \"
+            \"`streaming_content` instead.\" % self.__class__.__name__
         )
 
     @property
@@ -376,7 +376,7 @@ class StreamingHttpResponse(HttpResponseBase):
         self._set_streaming_content(value)
 
     def _set_streaming_content(self, value):
-        # Ensure we can never iterate on "value" more than once.
+        # Ensure we can never iterate on \"value\" more than once.
         self._iterator = iter(value)
         if hasattr(value, 'close'):
             self._closable_objects.append(value)
@@ -389,9 +389,9 @@ class StreamingHttpResponse(HttpResponseBase):
 
 
 class FileResponse(StreamingHttpResponse):
-    """
+    \"\"\"
     A streaming HTTP response class optimized for files.
-    """
+    \"\"\"
     block_size = 4096
 
     def __init__(self, *args, as_attachment=False, filename='', **kwargs):
@@ -412,10 +412,10 @@ class FileResponse(StreamingHttpResponse):
         super()._set_streaming_content(value)
 
     def set_headers(self, filelike):
-        """
+        \"\"\"
         Set some common response headers (Content-Length, Content-Type, and
         Content-Disposition) based on the `filelike` response content.
-        """
+        \"\"\"
         encoding_map = {
             'bzip2': 'application/x-bzip',
             'gzip': 'application/gzip',
@@ -443,9 +443,9 @@ class FileResponse(StreamingHttpResponse):
             if filename:
                 try:
                     filename.encode('ascii')
-                    file_expr = 'filename="{}"'.format(filename)
+                    file_expr = 'filename=\"{}\"%{}'.format(filename)
                 except UnicodeEncodeError:
-                    file_expr = "filename*=utf-8''{}".format(quote(filename))
+                    file_expr = \"filename*=utf-8''{}  \".format(quote(filename))
                 self['Content-Disposition'] = 'attachment; {}'.format(file_expr)
 
 
@@ -457,12 +457,12 @@ class HttpResponseRedirectBase(HttpResponse):
         self['Location'] = iri_to_uri(redirect_to)
         parsed = urlparse(str(redirect_to))
         if parsed.scheme and parsed.scheme not in self.allowed_schemes:
-            raise DisallowedRedirect("Unsafe redirect to URL with protocol '%s'" % parsed.scheme)
+            raise DisallowedRedirect(\"Unsafe redirect to URL with protocol '%s'\" % parsed.scheme)
 
     url = property(lambda self: self['Location'])
 
     def __repr__(self):
-        return '<%(cls)s status_code=%(status_code)d%(content_type)s, url="%(url)s">' % {
+        return '<%(cls)s status_code=%(status_code)d%(content_type)s, url=\"%(url)s\">' % {
             'cls': self.__class__.__name__,
             'status_code': self.status_code,
             'content_type': self._content_type_for_repr,
@@ -488,7 +488,7 @@ class HttpResponseNotModified(HttpResponse):
     @HttpResponse.content.setter
     def content(self, value):
         if value:
-            raise AttributeError("You cannot set content to a 304 (Not Modified) response")
+            raise AttributeError(\"You cannot set content to a 304 (Not Modified) response\")
         self._container = []
 
 
@@ -533,7 +533,7 @@ class Http404(Exception):
 
 
 class JsonResponse(HttpResponse):
-    """
+    \"\"\"
     An HTTP response class that consumes data to be serialized to JSON.
 
     :param data: Data to be dumped into json. By default only ``dict`` objects
@@ -544,7 +544,7 @@ class JsonResponse(HttpResponse):
     :param safe: Controls if only ``dict`` objects may be serialized. Defaults
       to ``True``.
     :param json_dumps_params: A dictionary of kwargs passed to json.dumps().
-    """
+    \"\"\"
 
     def __init__(self, data, encoder=DjangoJSONEncoder, safe=True,
                  json_dumps_params=None, **kwargs):
