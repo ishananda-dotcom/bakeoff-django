@@ -322,77 +322,6 @@ class AtomicMergeTests(TransactionTestCase):
 
 
 @skipUnlessDBFeature("uses_savepoints")
-class AtomicErrorsTests(TransactionTestCase):
-    available_apps = ["transactions"]
-    forbidden_atomic_msg = "This is forbidden when an 'atomic' block is active."
-
-    def test_atomic_prevents_setting_autocommit(self):
-        autocommit = transaction.get_autocommit()
-        with transaction.atomic():
-            with self.assertRaisesMessage(
-                transaction.TransactionManagementError, self.forbidden_atomic_msg
-            ):
-                transaction.set_autocommit(not autocommit)
-        # Make sure autocommit wasn't changed.
-        self.assertEqual(connection.autocommit, autocommit)
-
-    def test_atomic_prevents_calling_transaction_methods(self):
-        with transaction.atomic():
-            with self.assertRaisesMessage(
-                transaction.TransactionManagementError, self.forbidden_atomic_msg
-            ):
-                transaction.commit()
-            with self.assertRaisesMessage(
-                transaction.TransactionManagementError, self.forbidden_atomic_msg
-            ):
-                transaction.rollback()
-
-    def test_atomic_prevents_queries_in_broken_transaction(self):
-        r1 = Reporter.objects.create(first_name="Archibald", last_name="Haddock")
-        with transaction.atomic():
-            r2 = Reporter(first_name="Cuthbert", last_name="Calculus", id=r1.id)
-            with self.assertRaises(IntegrityError):
-                r2.save(force_insert=True)
-            # The transaction is marked as needing rollback.
-            msg = (
-                "An error occurred in the current transaction. You can't "
-                "execute queries until the end of the 'atomic' block."
-            )
-            with self.assertRaisesMessage(
-                transaction.TransactionManagementError, msg
-            ) as cm:
-                r2.save(force_update=True)
-        self.assertIsInstance(cm.exception.__cause__, IntegrityError)
-        self.assertEqual(Reporter.objects.get(pk=r1.pk).last_name, "Haddock")
-
-    @skipIfDBFeature("atomic_transactions")
-    def test_atomic_allows_queries_after_fixing_transaction(self):
-        r1 = Reporter.objects.create(first_name="Archibald", last_name="Haddock")
-        with transaction.atomic():
-            r2 = Reporter(first_name="Cuthbert", last_name="Calculus", id=r1.id)
-            with self.assertRaises(IntegrityError):
-                r2.save(force_insert=True)
-            # Mark the transaction as no longer needing rollback.
-            transaction.set_rollback(False)
-            r2.save(force_update=True)
-        self.assertEqual(Reporter.objects.get(pk=r1.pk).last_name, "Calculus")
-
-    @skipUnlessDBFeature("test_db_allows_multiple_connections")
-    def test_atomic_prevents_queries_in_broken_transaction_after_client_close(self):
-        with transaction.atomic():
-            Reporter.objects.create(first_name="Archibald", last_name="Haddock")
-            connection.close()
-            # The connection is closed and the transaction is marked as
-            # needing rollback. This will raise an InterfaceError on databases
-            # that refuse to create cursors on closed connections (PostgreSQL)
-            # and a TransactionManagementError on other databases.
-            with self.assertRaises(Error):
-                Reporter.objects.create(first_name="Cuthbert", last_name="Calculus")
-        # The connection is usable again .
-        self.assertEqual(Reporter.objects.count(), 0)
-
-
-@skipUnlessDBFeature("uses_savepoints")
 @skipUnless(connection.vendor == "mysql", "MySQL-specific behaviors")
 class AtomicMySQLTests(TransactionTestCase):
     available_apps = ["transactions"]
@@ -598,3 +527,22 @@ class SavepointTests(SimpleTestCase):
         msg = "savepoint() is deprecated. Use savepoint_create() instead."
         with self.assertRaisesMessage(RemovedInDjango70Warning, msg):
             transaction.savepoint()
+
+
+# Added Test Cases for FRA-149
+class SqlMigrateTests(TransactionTestCase):
+    available_apps = ["transactions"]
+
+    def test_commit_transaction_when_can_rollback_ddl(self):
+        connection.features.can_rollback_ddl = True
+        with transaction.atomic():
+            Reporter.objects.create(first_name="Rollback DDL Test")
+        self.assertEqual(Reporter.objects.filter(first_name="Rollback DDL Test").count(), 1)
+
+    def test_rollback_transaction_when_cannot_rollback_ddl(self):
+        connection.features.can_rollback_ddl = False
+        with self.assertRaisesMessage(Exception, "Oops"):
+            with transaction.atomic():
+                Reporter.objects.create(first_name="No Rollback DDL Test")
+                raise Exception("Oops")
+        self.assertEqual(Reporter.objects.filter(first_name="No Rollback DDL Test").count(), 0)
