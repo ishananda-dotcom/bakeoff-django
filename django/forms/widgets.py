@@ -785,8 +785,8 @@ class Select(ChoiceWidget):
             return use_required_attribute
 
         first_choice = next(iter(self.choices), None)
-        return use_required_attribute and first_choice is not None
-            self._choice_has_empty_value(first_choice)
+        return (use_required_attribute and first_choice is not None
+                and self._choice_has_empty_value(first_choice))
 
 
 class NullBooleanSelect(Select):
