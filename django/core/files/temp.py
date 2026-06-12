@@ -1,1 +1,79 @@
-\"\"\"\nThe temp module provides a NamedTemporaryFile that can be reopened in the same\nprocess on any platform. Most platforms use the standard Python\ntempfile.NamedTemporaryFile class, but Windows users are given a custom class.\n\nThis is needed because the Python implementation of NamedTemporaryFile uses the\nO_TEMPORARY flag under Windows, which prevents the file from being reopened\nif the same flag is not provided [1][2]. Note that this does not address the\nmore general issue of opening a file for writing and reading in multiple\nprocesses in a manner that works across platforms.\n\nThe custom version of NamedTemporaryFile doesn't support the same keyword\narguments available in tempfile.NamedTemporaryFile.\n\n1: https://mail.python.org/pipermail/python-list/2005-December/336955.html\n2: https://bugs.python.org/issue14243\n\"\"\"\n\nimport os\nimport tempfile\n\nfrom django.conf import settings\nfrom django.core.files.utils import FileProxyMixin\n\n__all__ = (\n    \"NamedTemporaryFile\",\n    \"gettempdir\",\n)\n\n\nif os.name == \"nt\":\n\n    class TemporaryFile(FileProxyMixin):\n        \"\"\"\n        Temporary file object constructor that supports reopening of the\n        temporary file in Windows.\n\n        Unlike tempfile.NamedTemporaryFile from the standard library,\n        __init__() doesn't support the 'delete', 'buffering', 'encoding', or\n        'newline' keyword arguments.\n        \"\"\"\n\n        def __init__(self, mode=\"w+b\", bufsize=-1, suffix=\"\", prefix=\"\", dir=None):\n            fd, name = tempfile.mkstemp(suffix=suffix, prefix=prefix, dir=dir)\n            self.name = name\n            self.file = os.fdopen(fd, mode, bufsize)\n            self.close_called = False\n            # Set file permissions to match FILE_UPLOAD_PERMISSIONS\n            if settings.FILE_UPLOAD_PERMISSIONS is not None:\n                os.chmod(name, settings.FILE_UPLOAD_PERMISSIONS)\n\n        # Because close can be called during shutdown\n        # we need to cache os.unlink and access it\n        # as self.unlink only\n        unlink = os.unlink\n\n        def close(self):\n            if not self.close_called:\n                self.close_called = True\n                try:\n                    self.file.close()\n                except OSError:\n                    pass\n                try:\n                    self.unlink(self.name)\n                except OSError:\n                    pass\n\n        def __del__(self):\n            self.close()\n\n        def __enter__(self):\n            self.file.__enter__()\n            return self\n\n        def __exit__(self, exc, value, tb):\n            self.file.__exit__(exc, value, tb)\n\n    NamedTemporaryFile = TemporaryFile\nelse:\n    # For non-Windows systems, wrap tempfile.NamedTemporaryFile to set permissions\n    _original_NamedTemporaryFile = tempfile.NamedTemporaryFile\n\n    class NamedTemporaryFile:\n        \"\"\"\n        Wrapper around tempfile.NamedTemporaryFile that sets FILE_UPLOAD_PERMISSIONS.\n        \"\"\"\n\n        def __init__(self, mode=\"w+b\", bufsize=-1, suffix=\"\", prefix=\"\", dir=None, **kwargs):\n            self._file = _original_NamedTemporaryFile(\n                mode=mode, bufsize=bufsize, suffix=suffix, prefix=prefix, dir=dir, **kwargs\n            )\n            # Set file permissions to match FILE_UPLOAD_PERMISSIONS\n            if settings.FILE_UPLOAD_PERMISSIONS is not None:\n                os.chmod(self._file.name, settings.FILE_UPLOAD_PERMISSIONS)\n\n        def __getattr__(self, name):\n            return getattr(self._file, name)\n\n        def __enter__(self):\n            return self._file.__enter__()\n\n        def __exit__(self, *args):\n            return self._file.__exit__(*args)\n\n        def __iter__(self):\n            return iter(self._file)\n\n        def __next__(self):\n            return next(self._file)\n\n\ngettempdir = tempfile.gettempdir\n
+"""
+The temp module provides a NamedTemporaryFile that can be reopened in the same
+process on any platform. Most platforms use the standard Python
+tempfile.NamedTemporaryFile class, but Windows users are given a custom class.
+
+This is needed because the Python implementation of NamedTemporaryFile uses the
+O_TEMPORARY flag under Windows, which prevents the file from being reopened
+if the same flag is not provided [1][2]. Note that this does not address the
+more general issue of opening a file for writing and reading in multiple
+processes in a manner that works across platforms.
+
+The custom version of NamedTemporaryFile doesn't support the same keyword
+arguments available in tempfile.NamedTemporaryFile.
+
+1: https://mail.python.org/pipermail/python-list/2005-December/336955.html
+2: https://bugs.python.org/issue14243
+"""
+
+import os
+import tempfile
+
+from django.core.files.utils import FileProxyMixin
+
+__all__ = (
+    "NamedTemporaryFile",
+    "gettempdir",
+)
+
+
+if os.name == "nt":
+
+    class TemporaryFile(FileProxyMixin):
+        """
+        Temporary file object constructor that supports reopening of the
+        temporary file in Windows.
+
+        Unlike tempfile.NamedTemporaryFile from the standard library,
+        __init__() doesn't support the 'delete', 'buffering', 'encoding', or
+        'newline' keyword arguments.
+        """
+
+        def __init__(self, mode="w+b", bufsize=-1, suffix="", prefix="", dir=None):
+            fd, name = tempfile.mkstemp(suffix=suffix, prefix=prefix, dir=dir)
+            self.name = name
+            self.file = os.fdopen(fd, mode, bufsize)
+            self.close_called = False
+
+        # Because close can be called during shutdown
+        # we need to cache os.unlink and access it
+        # as self.unlink only
+        unlink = os.unlink
+
+        def close(self):
+            if not self.close_called:
+                self.close_called = True
+                try:
+                    self.file.close()
+                except OSError:
+                    pass
+                try:
+                    self.unlink(self.name)
+                except OSError:
+                    pass
+
+        def __del__(self):
+            self.close()
+
+        def __enter__(self):
+            self.file.__enter__()
+            return self
+
+        def __exit__(self, exc, value, tb):
+            self.file.__exit__(exc, value, tb)
+
+    NamedTemporaryFile = TemporaryFile
+else:
+    NamedTemporaryFile = tempfile.NamedTemporaryFile
+
+gettempdir = tempfile.gettempdir
