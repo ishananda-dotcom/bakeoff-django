@@ -2035,7 +2035,7 @@ class FilePathField(Field):
         allow_folders=False,
         **kwargs,
     ):
-        self.path = path() if callable(path) else path
+        self.path = path
         self.match, self.recursive = match, recursive
         self.allow_files, self.allow_folders = allow_files, allow_folders
         kwargs.setdefault("max_length", 100)
