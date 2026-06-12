@@ -58,7 +58,7 @@ class Command(BaseCommand):
         # Show begin/end around output only for atomic migrations that support transactional DDL
         self.output_transaction = migration.atomic and connection.features.can_rollback_ddl
 
-        # Make a plan that represents just the requested migrations and show SQL
+        # Make a plan for requested migrations and show SQL
         # for it
         plan = [(executor.loader.graph.nodes[targets[0]], options['backwards'])]
         sql_statements = executor.collect_sql(plan)
