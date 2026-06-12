@@ -11,8 +11,10 @@ class Command(BaseCommand):
     output_transaction = True
 
     def add_arguments(self, parser):
-        parser.add_argument('app_label', help='App label of the application containing the migration.')
-        parser.add_argument('migration_name', help='Migration name to print the SQL for.')
+        parser.add_argument('app_label',
+            help='App label of the application containing the migration.')
+        parser.add_argument('migration_name',
+            help='Migration name to print the SQL for.')
         parser.add_argument(
             '--database', default=DEFAULT_DB_ALIAS,
             help='Nominates a database to create SQL for. Defaults to the "default" database.',
@@ -46,7 +48,8 @@ class Command(BaseCommand):
         if app_label not in executor.loader.migrated_apps:
             raise CommandError("App '%s' does not have migrations" % app_label)
         try:
-            migration = executor.loader.get_migration_by_prefix(app_label, migration_name)
+            migration = executor.loader.get_migration_by_prefix(app_label,
+                migration_name)
         except AmbiguityError:
             raise CommandError("More than one migration matches '%s' in app '%s'. Please be more specific." % (
                 migration_name, app_label))
@@ -55,10 +58,11 @@ class Command(BaseCommand):
                 migration_name, app_label))
         targets = [(app_label, migration.name)]
 
-        # Show begin/end around output only for atomic migrations on databases that support transactional DDL
-        self.output_transaction = migration.atomic and connection.features.can_rollback_ddl
+        # Show begin/end around output only for atomic migrations on databases 
+        self.output_transaction = migration.atomic
+            connection.features.can_rollback_ddl
 
-        # Make a plan that represents just the requested migrations and show SQL
+        # Make a plan that represents just the requested migrations and show SQ
         # for it
         plan = [(executor.loader.graph.nodes[targets[0]], options['backwards'])]
         sql_statements = executor.collect_sql(plan)
