@@ -44,13 +44,20 @@ def update_proxy_model_permissions(apps, schema_editor, reverse=False):
         new_content_type = concrete_content_type if reverse else proxy_content_type
         try:
             with transaction.atomic(using=alias):
+                # First, delete any existing permissions for the new content ty
+                # to avoid IntegrityError on duplicate key constraint
+                Permission.objects.using(alias).filter(
+                    permissions_query,
+                    content_type=new_content_type,
+                ).delete()
+                # Update permissions from old content type to new content type
                 Permission.objects.using(alias).filter(
                     permissions_query,
                     content_type=old_content_type,
                 ).update(content_type=new_content_type)
         except IntegrityError:
-            old = "{}_{}".format(old_content_type.app_label, old_content_type.model)
-            new = "{}_{}".format(new_content_type.app_label, new_content_type.model)
+            old = "{}_{}" .format(old_content_type.app_label, old_content_type.model)
+            new = "{}_{}" .format(new_content_type.app_label, new_content_type.model)
             sys.stdout.write(
                 style.WARNING(WARNING.format(old=old, new=new, query=permissions_query))
             )
