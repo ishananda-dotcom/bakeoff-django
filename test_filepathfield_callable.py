@@ -45,9 +45,6 @@ class ExampleModel(models.Model):
 
 def test_filepathfield_with_callable():
     """Test that FilePathField properly handles callable paths."""
-    # Create an instance of the model
-    instance = ExampleModel()
-
     # Get the field
     field = ExampleModel._meta.get_field('file_dynamic')
 
