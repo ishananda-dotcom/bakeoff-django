@@ -95,6 +95,7 @@ class FileSystemStorage(Storage, StorageSettingsMixin):
                         content.temporary_file_path(),
                         full_path,
                         allow_overwrite=self._allow_overwrite,
+                        file_permissions_mode=self.file_permissions_mode,
                     )
 
                 # This is a normal uploadedfile that we can stream.
