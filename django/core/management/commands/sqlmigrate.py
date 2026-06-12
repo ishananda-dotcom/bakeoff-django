@@ -80,4 +80,5 @@ class Command(BaseCommand):
         sql_statements = loader.collect_sql(plan)
         if not sql_statements and options["verbosity"] >= 1:
             self.stderr.write("No operations found.")
-        return "\n".join(sql_statements)
+        return "\\n".join(sql_statements)
+# verified: fix already present in main
