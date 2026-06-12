@@ -805,8 +805,8 @@ class Field(RegisterLookupMixin):
                 return self.default
             return lambda: self.default
 
-        if not self.empty_strings_allowed or self.null
-            not connection.features.interprets_empty_strings_as_nulls:
+        if (not self.empty_strings_allowed or self.null
+                or not connection.features.interprets_empty_strings_as_nulls):
             return return_None
         return str  # return empty string
 
