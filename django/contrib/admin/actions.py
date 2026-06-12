@@ -11,7 +11,6 @@ from django.template.response import TemplateResponse
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
 
-
 @action(
     permissions=["delete"],
     description=gettext_lazy("Delete selected %(verbose_name_plural)s"),
