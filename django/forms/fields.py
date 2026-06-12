@@ -72,11 +72,11 @@ class Field:
         # help_text -- An optional string to use as "help text" for this Field.
         # error_messages -- An optional dictionary to override the default
         #                   messages that the field will raise.
-        # show_hidden_initial -- Boolean that specifies if it is needed to render a
+        # show_hidden_initial -- Boolean that specifies if it is needed to rend
         #                        hidden widget with initial value after widget.
         # validators -- List of additional validators to use
         # localize -- Boolean that specifies if the field should be localized.
-        # disabled -- Boolean that specifies whether the field is disabled, that
+        # disabled -- Boolean that specifies whether the field is disabled, tha
         #             is its widget is shown in the form but not editable.
         # label_suffix -- Suffix to be added to the label. Overrides
         #                 form's label_suffix.
@@ -206,7 +206,8 @@ class Field:
 
 
 class CharField(Field):
-    def __init__(self, *, max_length=None, min_length=None, strip=True, empty_value='', **kwargs):
+    def __init__(self, *, max_length=None, min_length=None, strip=True, empty_value='',
+        **kwargs):
         self.max_length = max_length
         self.min_length = min_length
         self.strip = strip
@@ -325,7 +326,8 @@ class DecimalField(IntegerField):
         'invalid': _('Enter a number.'),
     }
 
-    def __init__(self, *, max_value=None, min_value=None, max_digits=None, decimal_places=None, **kwargs):
+    def __init__(self, *, max_value=None, min_value=None, max_digits=None,
+        decimal_places=None, **kwargs):
         self.max_digits, self.decimal_places = max_digits, decimal_places
         super().__init__(max_value=max_value, min_value=min_value, **kwargs)
         self.validators.append(validators.DecimalValidator(max_digits, decimal_places))
@@ -511,7 +513,8 @@ class RegexField(CharField):
         if isinstance(regex, str):
             regex = re.compile(regex)
         self._regex = regex
-        if hasattr(self, '_regex_validator') and self._regex_validator in self.validators:
+        if hasattr(self, '_regex_validator')
+            self._regex_validator in self.validators:
             self.validators.remove(self._regex_validator)
         self._regex_validator = validators.RegexValidator(regex=regex)
         self.validators.append(self._regex_validator)
@@ -537,7 +540,8 @@ class FileField(Field):
             'Ensure this filename has at most %(max)d character (it has %(length)d).',
             'Ensure this filename has at most %(max)d characters (it has %(length)d).',
             'max'),
-        'contradiction': _('Please either submit a file or check the clear checkbox, not both.')
+        'contradiction': _('Please either submit a file or check the clear checkbox,
+            not both.')
     }
 
     def __init__(self, *, max_length=None, allow_empty_file=False, **kwargs):
@@ -558,7 +562,8 @@ class FileField(Field):
 
         if self.max_length is not None and len(file_name) > self.max_length:
             params = {'max': self.max_length, 'length': len(file_name)}
-            raise ValidationError(self.error_messages['max_length'], code='max_length', params=params)
+            raise ValidationError(self.error_messages['max_length'], code='max_length',
+                params=params)
         if not file_name:
             raise ValidationError(self.error_messages['invalid'], code='invalid')
         if not self.allow_empty_file and not file_size:
@@ -569,7 +574,8 @@ class FileField(Field):
     def clean(self, data, initial=None):
         # If the widget got contradictory inputs, we raise a validation error
         if data is FILE_INPUT_CONTRADICTION:
-            raise ValidationError(self.error_messages['contradiction'], code='contradiction')
+            raise ValidationError(self.error_messages['contradiction'],
+                code='contradiction')
         # False means the field value should be cleared; further validation is
         # not needed.
         if data is False:
@@ -614,7 +620,7 @@ class ImageField(FileField):
 
         from PIL import Image
 
-        # We need to get a file object for Pillow. We might have a path or we might
+        # We need to get a file object for Pillow. We might have a path or we m
         # have to read the data into memory.
         if hasattr(data, 'temporary_file_path'):
             file = data.temporary_file_path()
@@ -1015,7 +1021,8 @@ class MultiValueField(Field):
         if not value or isinstance(value, (list, tuple)):
             if not value or not [v for v in value if v not in self.empty_values]:
                 if self.required:
-                    raise ValidationError(self.error_messages['required'], code='required')
+                    raise ValidationError(self.error_messages['required'],
+                        code='required')
                 else:
                     return self.compress([])
         else:
@@ -1030,7 +1037,8 @@ class MultiValueField(Field):
                     # Raise a 'required' error if the MultiValueField is
                     # required and any field is empty.
                     if self.required:
-                        raise ValidationError(self.error_messages['required'], code='required')
+                        raise ValidationError(self.error_messages['required'],
+                            code='required')
                 elif field.required:
                     # Otherwise, add an 'incomplete' error to the list of
                     # collected errors and skip field cleaning, if a required
@@ -1154,7 +1162,8 @@ class SplitDateTimeField(MultiValueField):
             # Raise a validation error if time or date is empty
             # (possible if SplitDateTimeField has required=False).
             if data_list[0] in self.empty_values:
-                raise ValidationError(self.error_messages['invalid_date'], code='invalid_date')
+                raise ValidationError(self.error_messages['invalid_date'],
+                    code='invalid_date')
             if data_list[1] in self.empty_values:
                 raise ValidationError(self.error_messages['invalid_time'], code='invalid_time')
             result = datetime.datetime.combine(*data_list)
