@@ -161,7 +161,7 @@ class Media:
         # Collect all unique files and build dependency graph
         all_files = []
         file_to_order = {}  # For each file, track the minimum order it appears at
-        
+
         # First pass: collect all files and their positions
         for file_list in lists:
             for i, path in enumerate(file_list):
@@ -171,19 +171,19 @@ class Media:
                 else:
                     # Track the earliest position this file appears
                     file_to_order[path] = min(file_to_order[path], i)
-        
+
         # Build dependency graph: file A must come before file B if they appear
         # in that order in any input list
         must_come_before = {}
         for path in all_files:
             must_come_before[path] = set()
-        
+
         for file_list in lists:
             for i, path in enumerate(file_list):
                 for j in range(i + 1, len(file_list)):
                     next_path = file_list[j]
                     must_come_before[path].add(next_path)
-        
+
         # Topological sort using Kahn's algorithm
         # Calculate in-degree for each node
         in_degree = {path: 0 for path in all_files}
