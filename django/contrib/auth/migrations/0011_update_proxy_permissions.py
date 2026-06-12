@@ -24,18 +24,17 @@ def update_proxy_model_permissions(apps, schema_editor, reverse=False):
         proxy_content_type = ContentType.objects.get_for_model(Model, for_concrete_model=False)
         old_content_type = proxy_content_type if reverse else concrete_content_type
         new_content_type = concrete_content_type if reverse else proxy_content_type
-        # Only update permissions that don't already exist with the new content type
-        # to avoid IntegrityError on duplicate entries
-        permissions_to_update = Permission.objects.filter(
+        # Delete any existing permissions with the new content type that would
+        # conflict with the update, to avoid IntegrityError on duplicate entries
+        Permission.objects.filter(
+            permissions_query,
+            content_type=new_content_type,
+        ).delete()
+        # Now update the remaining permissions to use the new content type
+        Permission.objects.filter(
             permissions_query,
             content_type=old_content_type,
-        ).exclude(
-            codename__in=Permission.objects.filter(
-                permissions_query,
-                content_type=new_content_type,
-            ).values_list('codename', flat=True)
-        )
-        permissions_to_update.update(content_type=new_content_type)
+        ).update(content_type=new_content_type)
 
 
 def revert_proxy_model_permissions(apps, schema_editor):
