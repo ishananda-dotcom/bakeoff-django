@@ -1,0 +1,1 @@
+response = HttpResponse(b'My Content')
