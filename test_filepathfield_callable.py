@@ -76,11 +76,11 @@ def test_filepathfield_with_string():
 
     # Get the form field
     form_field = field.formfield()
-    
+
     # Verify the form field has the same path
     assert form_field.path == field.path, \
         f"Form field path should be {field.path}, got {form_field.path}"
-    
+
     print("✓ FilePathField with string path works correctly")
 
 
@@ -101,7 +101,7 @@ if __name__ == '__main__':
             ],
             BASE_DIR=tempfile.gettempdir(),
         )
-    
+
     # Run tests
     test_filepathfield_with_callable()
     test_filepathfield_with_string()
