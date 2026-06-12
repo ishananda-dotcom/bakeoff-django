@@ -540,8 +540,9 @@ class FileField(Field):
             'Ensure this filename has at most %(max)d character (it has %(length)d).',
             'Ensure this filename has at most %(max)d characters (it has %(length)d).',
             'max'),
-        'contradiction': _('Please either submit a file or check the clear checkbox,
-            not both.')
+        'contradiction': _(
+            'Please either submit a file or check the clear checkbox, not both.'
+        ),
     }
 
     def __init__(self, *, max_length=None, allow_empty_file=False, **kwargs):
