@@ -59,8 +59,7 @@ class Command(BaseCommand):
         targets = [(app_label, migration.name)]
 
         # Show begin/end around output only for atomic migrations that support 
-        self.output_transaction = migration.atomic
-            connection.features.can_rollback_ddl
+        self.output_transaction = migration.atomic and connection.features.can_rollback_ddl
 
         # Make a plan for requested migrations and show SQL
         # for it
