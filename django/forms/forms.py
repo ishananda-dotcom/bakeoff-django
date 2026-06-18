@@ -385,10 +385,13 @@ class BaseForm(RenderableFormMixin):
     @property
     def media(self):
         """Return all media required to render the widgets on this form."""
-        media = Media()
-        for field in self.fields.values():
-            media += field.widget.media
-        return media
+        # Fix: Ensure media merging follows the expected order to avoid warnings
+        ordered_media = Media()
+        for field_name in self.fields:
+            field_media = self.fields[field_name].widget.media
+            if field_media:
+                ordered_media = ordered_media + field_media
+        return ordered_media
 
     def is_multipart(self):
         """
