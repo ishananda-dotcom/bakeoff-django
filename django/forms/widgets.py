@@ -244,11 +244,17 @@ class Media:
         global or in CSS you might want to override a style.
         """
         ts = TopologicalSorter()
+        seen, order_list = set(), []
         for head, *tail in filter(None, lists):
-            ts.add(head)  # Ensure that the first items are included.
+            if head not in seen:
+                ts.add(head)  # Ensure that the first items are included.
+                order_list.append(head)
+                seen.add(head)
             for item in tail:
-                if head != item:  # Avoid circular dependency to self.
+                if head != item and item not in seen:  # Avoid circular dependency to self.
                     ts.add(item, head)
+                    order_list.append(item)
+                    seen.add(item)
                 head = item
         try:
             return list(ts.static_order())
@@ -259,7 +265,8 @@ class Media:
                 ),
                 MediaOrderConflictWarning,
             )
-            return list(dict.fromkeys(chain.from_iterable(filter(None, lists))))
+            # Returning reliable order based on first occurrence
+            return list(dict.fromkeys(order_list))
 
     def __add__(self, other):
         if not isinstance(other, Media):
