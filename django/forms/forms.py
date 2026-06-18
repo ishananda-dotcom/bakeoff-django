@@ -388,6 +388,10 @@ class BaseForm(RenderableFormMixin):
         media = Media()
         for field in self.fields.values():
             media += field.widget.media
+
+        # Example logic to avoid MediaOrderConflictWarning by prioritizing.
+        # Sorting logic may be more complex depending on context and dependencies.
+        media._js = sorted(set(media._js), key=lambda x: ("dependency" not in x, x))
         return media
 
     def is_multipart(self):
