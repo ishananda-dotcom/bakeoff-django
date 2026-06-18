@@ -133,14 +133,20 @@ class FileSystemFinder(BaseFinder):
 
     def list(self, ignore_patterns):
         """
-        List all files in all locations.
+        List all files in all locations ensuring they are ordered correctly.
         """
+        sorted_paths = []
         for prefix, root in self.locations:
             # Skip nonexistent directories.
             if os.path.isdir(root):
                 storage = self.storages[root]
-                for path in utils.get_files(storage, ignore_patterns):
-                    yield path, storage
+                # Collect all paths in a list and sort
+                paths = list(utils.get_files(storage, ignore_patterns))
+                # Perform sort if needed or use custom logic specific to JS ordering
+                paths.sort()
+                for path in paths:
+                    sorted_paths.append((path, storage))
+        return sorted_paths
 
 
 class AppDirectoriesFinder(BaseFinder):
