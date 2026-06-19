@@ -644,3 +644,14 @@ class PermissionTests(TestCase):
     def test_user_perm_str(self):
         p = Permission.objects.get(codename="view_customemailfield")
         self.assertEqual(p.user_perm_str, "auth_tests.view_customemailfield")
+
+    def test_username_validator_allows_trailing_newline(self):
+        user = User(username="test_user
+", email="test@example.com")
+        with self.assertRaises(ValueError):
+            user.full_clean()
+
+    def test_username_validator_allows_trailing_spaces(self):
+        user = User(username="test_user  ", email="test@example.com")
+        with self.assertRaises(ValueError):
+            user.full_clean()
