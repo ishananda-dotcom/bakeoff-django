@@ -22,4 +22,4 @@ class UnicodeUsernameValidator(validators.RegexValidator):
         "Enter a valid username. This value may contain only letters, "
         "numbers, and @/./+/-/_ characters."
     )
-    flags = 0
+    flags = re.UNICODE
