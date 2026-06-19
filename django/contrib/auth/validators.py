@@ -22,4 +22,14 @@ class UnicodeUsernameValidator(validators.RegexValidator):
         "Enter a valid username. This value may contain only letters, "
         "numbers, and @/./+/-/_ characters."
     )
-    flags = 0
+    flags = re.UNICODE
+
+# New test cases for username validation
+def test_ascii_username_validator():
+    validator = ASCIIUsernameValidator()
+    assert validator.regex.match('valid_username') is not None
+    assert validator.regex.match('invalid username') is None
+def test_unicode_username_validator():
+    validator = UnicodeUsernameValidator()
+    assert validator.regex.match('valid.username') is not None
+    assert validator.regex.match('invalid username') is None
