@@ -106,7 +106,7 @@ SKIP_COLLECTION = frozenset([DO_NOTHING, DB_CASCADE, DB_SET_DEFAULT, DB_SET_NULL
 def get_candidate_relations_to_delete(opts):
     # The candidate relations are the ones that come from N-1 and 1-1
     # relations. N-N  (i.e., many-to-many) relations aren't candidates for
-    # deletion.
+    # deletion. The primary key should be set to None after deletion.
     return (
         f
         for f in opts.get_fields(include_hidden=True)
