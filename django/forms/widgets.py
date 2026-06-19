@@ -389,7 +389,7 @@ class Widget(metaclass=MediaDefiningClass):
         Given a dictionary of data and this widget's name, return the value
         of this widget or None if it's not provided.
         """
-        return data.get(name)
+        return data.get(name)\n\n    def test_password_widget_rendering(self):\n        widget = PasswordInput()\n        rendered = widget.render('password', 'mysecret')\n        assert '<input type=
 
     def value_omitted_from_data(self, data, files, name):
         return name not in data
