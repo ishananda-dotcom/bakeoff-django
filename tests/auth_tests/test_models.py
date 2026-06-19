@@ -644,3 +644,18 @@ class PermissionTests(TestCase):
     def test_user_perm_str(self):
         p = Permission.objects.get(codename="view_customemailfield")
         self.assertEqual(p.user_perm_str, "auth_tests.view_customemailfield")
+
+    def test_delete_on_instances_of_models(self):
+        # Test case for deleting instances of models without any references
+        user = User.objects.create(username='testuser', email='test@example.com')
+        user.delete()
+        self.assertFalse(User.objects.filter(username='testuser').exists())
+
+    def test_delete_on_instances_of_models_with_related_objects(self):
+        # Test case for deleting instances of models with related objects
+        group = Group.objects.create(name='testgroup')
+        user = User.objects.create(username='testuser', email='test@example.com')
+        user.groups.add(group)
+        user.delete()
+        self.assertFalse(User.objects.filter(username='testuser').exists())
+        self.assertTrue(Group.objects.filter(name='testgroup').exists())
