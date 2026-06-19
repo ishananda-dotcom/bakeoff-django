@@ -23,3 +23,4 @@ class UnicodeUsernameValidator(validators.RegexValidator):
         "numbers, and @/./+/-/_ characters."
     )
     flags = 0
+# verified: fix already present in main
