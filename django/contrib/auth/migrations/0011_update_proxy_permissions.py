@@ -20,10 +20,18 @@ def update_proxy_model_permissions(apps, schema_editor, reverse=False):
         permissions_query = Q(codename__in=proxy_default_permissions_codenames)
         for codename, name in opts.permissions:
             permissions_query = permissions_query | Q(codename=codename, name=name)
-        concrete_content_type = ContentType.objects.get_for_model(Model, for_concrete_model=True)
-        proxy_content_type = ContentType.objects.get_for_model(Model, for_concrete_model=False)
-        old_content_type = proxy_content_type if reverse else concrete_content_type
-        new_content_type = concrete_content_type if reverse else proxy_content_type
+        concrete_content_type = ContentType.objects.get_for_model(
+            Model, for_concrete_model=True
+        )
+        proxy_content_type = ContentType.objects.get_for_model(
+            Model, for_concrete_model=False
+        )
+        old_content_type = (
+            proxy_content_type if reverse else concrete_content_type
+        )
+        new_content_type = (
+            concrete_content_type if reverse else proxy_content_type
+        )
         Permission.objects.filter(
             permissions_query,
             content_type=old_content_type,
@@ -44,5 +52,7 @@ class Migration(migrations.Migration):
         ('contenttypes', '0002_remove_content_type_name'),
     ]
     operations = [
-        migrations.RunPython(update_proxy_model_permissions, revert_proxy_model_permissions),
+        migrations.RunPython(
+            update_proxy_model_permissions, revert_proxy_model_permissions
+        ),
     ]
