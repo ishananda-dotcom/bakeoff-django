@@ -24,10 +24,24 @@ def update_proxy_model_permissions(apps, schema_editor, reverse=False):
         proxy_content_type = ContentType.objects.get_for_model(Model, for_concrete_model=False)
         old_content_type = proxy_content_type if reverse else concrete_content_type
         new_content_type = concrete_content_type if reverse else proxy_content_type
-        Permission.objects.filter(
+        
+        # Get permissions that need to be migrated
+        permissions_to_migrate = Permission.objects.filter(
             permissions_query,
             content_type=old_content_type,
-        ).update(content_type=new_content_type)
+        )
+        
+        # Delete any duplicate permissions that already exist on the new content type
+        for permission in permissions_to_migrate:
+            existing = Permission.objects.filter(
+                codename=permission.codename,
+                content_type=new_content_type,
+            ).exists()
+            if existing:
+                permission.delete()
+            else:
+                permission.content_type = new_content_type
+                permission.save()
 
 
 def revert_proxy_model_permissions(apps, schema_editor):
