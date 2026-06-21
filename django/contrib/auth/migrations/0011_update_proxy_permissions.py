@@ -1,5 +1,7 @@
-from django.db import migrations
+from django.db import migrations, transaction
 from django.db.models import Q
+from django.db import IntegrityError
+import sys
 
 
 def update_proxy_model_permissions(apps, schema_editor, reverse=False):
@@ -24,10 +26,27 @@ def update_proxy_model_permissions(apps, schema_editor, reverse=False):
         proxy_content_type = ContentType.objects.get_for_model(Model, for_concrete_model=False)
         old_content_type = proxy_content_type if reverse else concrete_content_type
         new_content_type = concrete_content_type if reverse else proxy_content_type
-        Permission.objects.filter(
-            permissions_query,
-            content_type=old_content_type,
-        ).update(content_type=new_content_type)
+        try:
+            with transaction.atomic():
+                # Get permissions that need to be updated
+                perms_to_update = Permission.objects.filter(
+                    permissions_query,
+                    content_type=old_content_type,
+                )
+                # Delete any conflicting permissions that already exist for the new content type
+                Permission.objects.filter(
+                    permissions_query,
+                    content_type=new_content_type,
+                ).delete()
+                # Now update the remaining permissions
+                perms_to_update.update(content_type=new_content_type)
+        except IntegrityError:
+            old = "{}_{}" .format(old_content_type.app_label, old_content_type.model)
+            new = "{}_{}" .format(new_content_type.app_label, new_content_type.model)
+            sys.stdout.write(
+                "WARNING: Could not update permissions for {} to {}. "
+                "Permissions may already exist for the target content type.\n".format(old, new)
+            )
 
 
 def revert_proxy_model_permissions(apps, schema_editor):
