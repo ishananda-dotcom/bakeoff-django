@@ -139,11 +139,16 @@ class Media:
                 combined_list.insert(last_insert_index, path)
             else:
                 if index > last_insert_index:
-                    warnings.warn(
-                        'Detected duplicate Media files in an opposite order:\n'
-                        '%s\n%s' % (combined_list[last_insert_index], combined_list[index]),
-                        MediaOrderConflictWarning,
-                    )
+                    # Find the actual conflicting pair by looking at elements
+                    # between last_insert_index and index
+                    for i in range(last_insert_index, index):
+                        if combined_list[i] in list_2:
+                            warnings.warn(
+                                'Detected duplicate Media files in an opposite order:\n'
+                                '%s\n%s' % (combined_list[i], path),
+                                MediaOrderConflictWarning,
+                            )
+                            break
                 # path already exists in the list. Update last_insert_index so
                 # that the following elements are inserted in front of this one.
                 last_insert_index = index
